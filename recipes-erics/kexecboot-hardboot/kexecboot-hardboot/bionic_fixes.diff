@@ -1,0 +1,83 @@
+From: Mike Kasick <mike@kasick.org>
+Date: Sat, 05 Nov 2011 22:59:56 -0400
+
+Add Bionic libc compatibility fixes.
+
+The main compatibility bug is that bionic doesn't support "%L" in format
+strings for type "long long".  Use "%ll" instead.
+
+diff --git a/jni/kdump/Makefile b/jni/kdump/Makefile
+--- a/jni/kdump/Makefile
++++ b/jni/kdump/Makefile
+@@ -18,7 +18,7 @@
+ $(KDUMP): CC=$(TARGET_CC)
+ $(KDUMP): $(KDUMP_OBJS)
+ 	@$(MKDIR) -p $(@D)
+-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -o $@ $(KDUMP_OBJS)
++	$(CC) $(LDFLAGS) -o $@ $(KDUMP_OBJS)
+ 
+ $(KDUMP_MANPAGE): kdump/kdump.8
+ 	$(MKDIR) -p     $(MANDIR)/man8
+diff --git a/jni/kexec/arch/arm/kexec-arm.c b/jni/kexec/arch/arm/kexec-arm.c
+--- a/jni/kexec/arch/arm/kexec-arm.c
++++ b/jni/kexec/arch/arm/kexec-arm.c
+@@ -44,7 +44,7 @@
+ 		int count;
+ 		if (memory_ranges >= MAX_MEMORY_RANGES)
+ 			break;
+-		count = sscanf(line, "%Lx-%Lx : %n",
++		count = sscanf(line, "%llx-%llx : %n",
+ 			&start, &end, &consumed);
+ 		if (count != 2)
+ 			continue;
+diff --git a/jni/kexec/crashdump.c b/jni/kexec/crashdump.c
+--- a/jni/kexec/crashdump.c
++++ b/jni/kexec/crashdump.c
+@@ -97,13 +97,13 @@
+ 	}
+ 	if (!fgets(line, sizeof(line), fp))
+ 		die("Cannot parse %s: %s\n", crash_notes, strerror(errno));
+-	count = sscanf(line, "%Lx", &temp);
++	count = sscanf(line, "%llx", &temp);
+ 	if (count != 1)
+ 		die("Cannot parse %s: %s\n", crash_notes, strerror(errno));
+ 	*addr = (uint64_t) temp;
+ 	*len = MAX_NOTE_BYTES; /* we should get this from the kernel instead */
+ #if 0
+-	printf("crash_notes addr = %Lx\n", *addr);
++	printf("crash_notes addr = %llx\n", *addr);
+ #endif
+ 
+ 	fclose(fp);
+@@ -125,7 +125,7 @@
+ 
+ 	if (!fgets(line, sizeof(line), fp))
+ 		die("Cannot parse %s: %s\n", kdump_info, strerror(errno));
+-	count = sscanf(line, "%Lx %Lx", &temp, &temp2);
++	count = sscanf(line, "%llx %llx", &temp, &temp2);
+ 	if (count != 2)
+ 		die("Cannot parse %s: %s\n", kdump_info, strerror(errno));
+ 
+diff --git a/jni/kexec/kexec-iomem.c b/jni/kexec/kexec-iomem.c
+--- a/jni/kexec/kexec-iomem.c
++++ b/jni/kexec/kexec-iomem.c
+@@ -44,7 +44,7 @@
+ 		die("Cannot open %s\n", iomem);
+ 
+ 	while(fgets(line, sizeof(line), fp) != 0) {
+-		count = sscanf(line, "%Lx-%Lx : %n", &start, &end, &consumed);
++		count = sscanf(line, "%llx-%llx : %n", &start, &end, &consumed);
+ 		if (count != 2)
+ 			continue;
+ 		str = line + consumed;
+diff --git a/jni/kexec/kexec-syscall.h b/jni/kexec/kexec-syscall.h
+--- a/jni/kexec/kexec-syscall.h
++++ b/jni/kexec/kexec-syscall.h
+@@ -2,7 +2,6 @@
+ #define KEXEC_SYSCALL_H
+ 
+ #define __LIBRARY__
+-#include <syscall.h>
+ #include <sys/syscall.h>
+ #include <unistd.h>
+ 

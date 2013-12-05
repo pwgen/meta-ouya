@@ -1,0 +1,9 @@
+[Unit]
+Description=Erics initramfs postinstall Config System"
+#After=sshdgenkeys.service
+
+[Service]
+ExecStart=-/usr/sbin/erics-systemd 
+ExecReload=/bin/kill -HUP $MAINPID
+StandardInput=socket
+StandardError=syslog

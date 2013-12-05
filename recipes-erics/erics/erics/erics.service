@@ -1,0 +1,17 @@
+[Unit]
+Description=erics
+OnFailure=emergency.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/erics.sh
+RemainAfterExit=yes
+#Before=local-fs.target
+
+#[erics]
+#foo=bar
+
+[Install]
+WantedBy=erics.target
+

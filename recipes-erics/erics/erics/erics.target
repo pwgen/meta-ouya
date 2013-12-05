@@ -1,0 +1,13 @@
+
+[Unit]
+Description=erics
+Documentation=man:systemd.special(7)
+#ConditionPathExists=/etc/initrd-release
+DefaultDependencies=no
+Requires=initrd-switch-root.service
+Before=initrd-switch-root.service
+AllowIsolate=yes
+Wants=initrd-udevadm-cleanup-db.service systemd-journald.service
+After=initrd-udevadm-cleanup-db.service emergency.service emergency.target
+
+

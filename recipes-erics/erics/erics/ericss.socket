@@ -1,0 +1,11 @@
+[Unit]
+Conflicts=sshd.service
+
+[Socket]
+ExecStartPre=/bin/mkdir -p /var/run/erics
+ListenStream=10000
+Accept=yes
+
+[Install]
+WantedBy=sockets.target
+#Also=sshdgenkeys.service
